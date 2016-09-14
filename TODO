@@ -2,3 +2,6 @@
 2. Create Client generator from OpenAPI Specification
 3. Use Multiple OpenAPI Specification for the inject to server or Client
 4. Create WebSocket Interface, HTTP Interface, HTTP2 Interface.
+5. JSON to YAML convertor
+6. Generate Python code fro OpenAPI Specification
+7. Create constructor on fly

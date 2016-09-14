@@ -68,3 +68,7 @@ target/
 .venv/
 venv/
 ENV/
+
+# experiments
+
+experiments/
