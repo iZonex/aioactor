@@ -1,0 +1,4 @@
+1. Create Server generator from OpenAPI Specification
+2. Create Client generator from OpenAPI Specification
+3. Use Multiple OpenAPI Specification for the inject to server or Client
+4. Create WebSocket Interface, HTTP Interface, HTTP2 Interface.

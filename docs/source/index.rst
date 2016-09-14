@@ -10,6 +10,7 @@ Contents:
 
 .. toctree::
    introduction
+   gettingstarted
    general
    networking
    utilities
