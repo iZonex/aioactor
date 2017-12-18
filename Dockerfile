@@ -8,7 +8,7 @@
 # \_______/|__/ \______/  \_______/ \_______/   \___/   \______/ |__/      
 #                                                                          
 
-FROM python:3.6
+FROM python:alpine:3.6.1-alpine
 
 MAINTAINER dlchistyakov@gmail.com
 
