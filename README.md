@@ -23,13 +23,13 @@
 
   TBD
 
-## Contribute
+## To start development aioactor
 
-  TBD
+The [community folder](https://github.com/iZonex/aioactor/blob/master/community/README.md) in main project host all information about building aioactor from source, how to contribute code and documentation, who to contact about what, etc.
 
 ## License
 
-Copyright 2015 Dmytro Chystiakov
+Copyright 2017 Dmytro Chystiakov
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
