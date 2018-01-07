@@ -1,7 +1,13 @@
+import json
+import asyncio
+from nats.aio.client import Client as NATS
+from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 class ServiceBroker:
 
-    def __init__(self, **settings):
+    def __init__(self, io_loop, **settings):
+        self.io_loop = io_loop
+        self.nc = NATS()
         self.logger = settings.get('logger')
 
     __services = {}
@@ -14,16 +20,32 @@ class ServiceBroker:
     def available_services(self):
         return self.__services
 
-    def call_service(self, name, *args, **kwargs):
+    async def call_service(self, name, *args, **kwargs):
         try:
-            result = self.__services.get(name)(*args, **kwargs)
+            result = await self.__services.get(name)(*args, **kwargs)
         except Exception as err:
             print(f'error {err}')
         return result
 
-    def start(self):
-        pass
+    async def message_handler(self, msg):
+        subject = msg.subject
+        reply = msg.reply
+        data = msg.data.decode()
+        print("Received a message on '{subject} {reply}': {data}".format(
+        subject=subject, reply=reply, data=data))
+        data = json.loads(data)
+        result = await self.call_service(subject, **data)
+        dumped = json.dumps({"result": result})
+        await self.nc.publish(reply, dumped.encode())
 
+    async def start(self):
+        await self.nc.connect(io_loop=self.io_loop)
+        sid = await self.nc.subscribe("users.*", cb=self.message_handler)
+        data = {
+            'user_id': 1
+        }
+        response = await self.nc.timed_request("users.get", json.dumps(data).encode(), 0.050)
+        print('response:', response.data.decode())
 
 class Service:
 
@@ -31,24 +53,35 @@ class Service:
     actions = {}
 
 
-class Math(Service):
+class Users(Service):
 
     def __init__(self):
-        self.name = "math"
+        self.name = "users"
         self.actions = {
-            'sumadd': self.add
+            'get': self.get_user_name
         }
 
-    def add(self, x: int, y: int) -> int:
-        return x + y
+    async def get_user_name(self, user_id: int) -> dict:
+        users = {
+            1: {
+                'firstname': 'Antonio',
+                'lastname': 'Rodrigas'
+            }
+        }
+        user_obj = users.get(user_id, {})
+        return user_obj
 
-def main():
+
+async def main(loop):
     settings = {'logger': 'console'}
-    broker = ServiceBroker(**settings)
-    broker.create_service(Math())
-    broker.start()
+    broker = ServiceBroker(io_loop=loop, **settings)
+    broker.create_service(Users())
     print(broker.available_services())
-    print(broker.call_service('math.sumadd', 6, 5))
+    await broker.start()
+
 
 if __name__ == '__main__':
-    main()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main(loop))
+    loop.run_forever()
+    loop.close()
