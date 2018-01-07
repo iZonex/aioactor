@@ -1,7 +1,11 @@
-import json
+import time
+import ujson as json
 import asyncio
 from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
+
+import uvloop
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # TODO ADD possible actions list!
 # TODO ADD abstractions to Message Handler!
@@ -10,17 +14,24 @@ from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 class NatsHandler:
 
     def __init__(self, subscribe_list, call_service):
+        self.start_time = time.time()
+        self.messages_total = 0
         self.subscribe_list = subscribe_list
         self.call_service = call_service
         self.loop = asyncio.get_event_loop()
         self.nc = NATS()
 
     async def message_handler(self, msg):
+        self.messages_total += 1
+        if time.time() - self.start_time > 1:
+            print(self.messages_total)
+            self.start_time = time.time()
+            self.messages_total = 0
         subject = msg.subject
         reply = msg.reply
         data = msg.data.decode()
-        print("Received a message on '{subject} {reply}': {data}".format(
-            subject=subject, reply=reply, data=data))
+        # print("Received a message on '{subject} {reply}': {data}".format(
+        #     subject=subject, reply=reply, data=data))
         data = json.loads(data)
         result = await self.call_service(subject, **data)
         dumped = json.dumps({"result": result})
@@ -29,7 +40,7 @@ class NatsHandler:
     async def subscribe(self):
         await self.nc.connect(io_loop=self.loop)
         for service_key in self.subscribe_list.keys():
-            await self.nc.subscribe(f"{service_key}", cb=self.message_handler)
+            await self.nc.subscribe_async(f"{service_key}", cb=self.message_handler)
 
 class MessageHandler:
 
@@ -93,7 +104,7 @@ class Users(Service):
         return user_obj
 
 
-async def main(loop):
+async def main():
     settings = {
         'logger': 'console',
         'message_handler': {
@@ -104,18 +115,9 @@ async def main(loop):
     broker.create_service(Users())
     print(broker.available_services())
     await broker.start()
-    nc = NATS()
-    data = {
-        'user_id': 1
-    }
-    await nc.connect()
-    response = await nc.timed_request("users.get", json.dumps(data).encode(), 0.050)
-    print('response:', response.data.decode())
-
-
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main(loop))
+    loop.run_until_complete(main())
     loop.run_forever()
     loop.close()
