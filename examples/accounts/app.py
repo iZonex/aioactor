@@ -3,6 +3,8 @@ import asyncio
 from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
+# TODO ADD possible actions list!
+
 class ServiceBroker:
 
     def __init__(self, io_loop, **settings):
@@ -40,7 +42,8 @@ class ServiceBroker:
 
     async def start(self):
         await self.nc.connect(io_loop=self.io_loop)
-        sid = await self.nc.subscribe("users.*", cb=self.message_handler)
+        for service_key in self.__services.keys():
+            await self.nc.subscribe(f"{service_key}", cb=self.message_handler)
         data = {
             'user_id': 1
         }
