@@ -1,46 +1,12 @@
 import time
-import ujson as json
 import asyncio
-from nats.aio.client import Client as NATS
-from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
-
 import uvloop
+from aioactor.transports import NatsTransport
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # TODO ADD possible actions list!
 # TODO ADD abstractions to Message Handler!
 # MessageHandler must be able to call methods of Service and control requests
-
-class NatsHandler:
-
-    def __init__(self, subscribe_list, call_service):
-        self.start_time = time.time()
-        self.messages_total = 0
-        self.subscribe_list = subscribe_list
-        self.call_service = call_service
-        self.loop = asyncio.get_event_loop()
-        self.nc = NATS()
-
-    async def message_handler(self, msg):
-        self.messages_total += 1
-        if time.time() - self.start_time > 1:
-            print(self.messages_total)
-            self.start_time = time.time()
-            self.messages_total = 0
-        subject = msg.subject
-        reply = msg.reply
-        data = msg.data.decode()
-        # print("Received a message on '{subject} {reply}': {data}".format(
-        #     subject=subject, reply=reply, data=data))
-        data = json.loads(data)
-        result = await self.call_service(subject, **data)
-        dumped = json.dumps({"result": result})
-        await self.nc.publish(reply, dumped.encode())
-
-    async def subscribe(self):
-        await self.nc.connect(io_loop=self.loop)
-        for service_key in self.subscribe_list.keys():
-            await self.nc.subscribe_async(f"{service_key}", cb=self.message_handler)
 
 class MessageHandler:
 
@@ -55,10 +21,15 @@ class ServiceBroker:
 
     def __init__(self, **settings):
         self.logger = settings.get('logger')
-        self.message_handler = MessageHandler(settings.get(
-            'message_handler'), self.__services, self.call_service)
+        self.__message_transport = self.__setup_message_transport(
+            settings.get('message_transport')
+        )
 
     __services = {}
+
+    def __setup_message_transport(self, message_transport):
+        self.__message_transport = MessageHandler(
+            message_transport, self.__services, self.call_service)
 
     def create_service(self, service):
         for action_name, action_method in service.actions.items():
@@ -76,7 +47,7 @@ class ServiceBroker:
         return result
 
     async def start(self):
-        await self.message_handler.run()
+        await self.__message_transport.run()
 
 
 class Service:
@@ -107,8 +78,8 @@ class Users(Service):
 async def main():
     settings = {
         'logger': 'console',
-        'message_handler': {
-            'handler': NatsHandler
+        'message_transport': {
+            'handler': NatsTransport
         }
     }
     broker = ServiceBroker(io_loop=loop, **settings)
