@@ -1,9 +1,11 @@
 import time
 import ujson as json
 import asyncio
-from nats.aio.client import Client as NATS
+from nats.aio.client import Client
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
+# TODO connect to init!
+# TODO Added Handle for server interuptions
 
 class NatsTransport:
 
@@ -13,7 +15,7 @@ class NatsTransport:
         self.subscribe_list = subscribe_list
         self.call_service = call_service
         self.loop = asyncio.get_event_loop()
-        self.nc = NATS()
+        self.client = Client()
 
     async def message_handler(self, msg):
         self.messages_total += 1
@@ -29,15 +31,16 @@ class NatsTransport:
         data = json.loads(data)
         result = await self.call_service(subject, **data)
         dumped = json.dumps({"result": result})
-        await self.nc.publish(reply, dumped.encode())
+        await self.client.publish(reply, dumped.encode())
 
     async def subscribe(self):
-        await self.nc.connect(io_loop=self.loop)
+        await self.client.connect(io_loop=self.loop)
         for service_key in self.subscribe_list.keys():
-            await self.nc.subscribe_async(
+            await self.client.subscribe_async(
                 f"{service_key}",
                 cb=self.message_handler)
 
     async def publish(self, topic, inbox, data):
-        response = await nc.publish_request("users.get", inbox, data)
+        await self.client.connect(io_loop=self.loop)
+        response = await self.client.publish_request("users.get", inbox, data)
         return response
