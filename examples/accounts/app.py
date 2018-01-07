@@ -5,6 +5,35 @@ from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 # TODO ADD possible actions list!
 # TODO ADD abstractions to Message Handler!
+# MessageHandler must be able to call methods of Service and control requests
+
+class MessageHandler:
+
+    def __init__(self, io_loop, **settings):
+        self.io_loop = io_loop
+        self.nc = NATS()
+        self.logger = settings.get('logger')
+
+    async def message_handler(self, msg):
+        subject = msg.subject
+        reply = msg.reply
+        data = msg.data.decode()
+        print("Received a message on '{subject} {reply}': {data}".format(
+        subject=subject, reply=reply, data=data))
+        data = json.loads(data)
+        result = await self.call_service(subject, **data)
+        dumped = json.dumps({"result": result})
+        await self.nc.publish(reply, dumped.encode())
+
+    async def start(self):
+        await self.nc.connect(io_loop=self.io_loop)
+        for service_key in self.__services.keys():
+            await self.nc.subscribe(f"{service_key}", cb=self.message_handler)
+        data = {
+            'user_id': 1
+        }
+        response = await self.nc.timed_request("users.get", json.dumps(data).encode(), 0.050)
+        print('response:', response.data.decode())
 
 class ServiceBroker:
 
