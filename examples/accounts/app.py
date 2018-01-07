@@ -1,59 +1,13 @@
-import time
 import asyncio
 import uvloop
 from aioactor.transports import NatsTransport
+from aioactor.service import Service
+from aioactor.broker import ServiceBroker
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # TODO ADD possible actions list!
 # TODO ADD abstractions to Message Handler!
 # MessageHandler must be able to call methods of Service and control requests
-
-class MessageHandler:
-
-    def __init__(self, handler_type, subscribe_list, call_service):
-        self.handler = handler_type.get('handler')(subscribe_list, call_service)
-
-    async def run(self):
-        await self.handler.subscribe()
-
-
-class ServiceBroker:
-
-    def __init__(self, **settings):
-        self.logger = settings.get('logger')
-        self.__message_transport = self.__setup_message_transport(
-            settings.get('message_transport')
-        )
-
-    __services = {}
-
-    def __setup_message_transport(self, message_transport):
-        self.__message_transport = MessageHandler(
-            message_transport, self.__services, self.call_service)
-
-    def create_service(self, service):
-        for action_name, action_method in service.actions.items():
-            service_name = f"{service.name}.{action_name}"
-            self.__services.setdefault(service_name, action_method)
-
-    def available_services(self):
-        return self.__services
-
-    async def call_service(self, name, *args, **kwargs):
-        try:
-            result = await self.__services.get(name)(*args, **kwargs)
-        except Exception as err:
-            print(f'error {err}')
-        return result
-
-    async def start(self):
-        await self.__message_transport.run()
-
-
-class Service:
-
-    name = None
-    actions = {}
 
 
 class Users(Service):

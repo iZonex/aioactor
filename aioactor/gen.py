@@ -21,7 +21,7 @@ class ClientGenerator(BaseGenerator):
 
     def __init__(self, file_path):
         self.file_path = file_path
-    
+
     def generate(self):
         print(file_path)
 
@@ -29,7 +29,7 @@ class ModuleGenerator(BaseGenerator):
 
     def __init__(self, file_path):
         self.file_path = file_path
-    
+
     def generate(self):
         print(file_path)
 
@@ -37,7 +37,7 @@ class ApplicationGenerator:
 
     def __init__(self, app_generator, file_path, destination=None):
         self.app_generator = app_generator(file_path)
-    
+
     def create(self):
         self.app_generator.generate()
 
@@ -59,9 +59,9 @@ if __name__ == '__main__':
     """
     parser = argparse.ArgumentParser(instruction)
     parser.add_argument(
-        "-g", 
-        "--generate", 
-        choices=['client', 'server', 'module'], 
+        "-g",
+        "--generate",
+        choices=['client', 'server', 'module'],
         type=str,
         help="Choice generation task type",
         default='server')
