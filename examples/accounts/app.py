@@ -1,6 +1,3 @@
-from functools import partial
-
-
 class ServiceBroker:
 
     def __init__(self, **settings):
@@ -12,32 +9,25 @@ class ServiceBroker:
         self.__services.append(service)
 
     def start(self):
-        pass
-        # for i in self.__services:
-        #     print(i.name)
-
-
-def action(name=None):
-
-    print(f"Action with name: {name} was added")
-
-    def real_decorator(function):
-        def wrapper(*args, **kwargs):
-            function(*args, **kwargs)
-        return wrapper
-
-    return real_decorator
+        for i in self.__services:
+            print(i.name)
+            print(i.actions)
 
 
 class Service:
-    pass
+
+    name = None
+    actions = {}
 
 
 class Math(Service):
 
-    name = "math"
+    def __init__(self):
+        self.name = "math"
+        self.actions = {
+            'sumadd': self.add
+        }
 
-    @action("add")
     def add(self, x: int, y: int) -> int:
         return x + y
 
@@ -45,7 +35,7 @@ class Math(Service):
 def main():
     settings = {'logger': 'console'}
     broker = ServiceBroker(**settings)
-    broker.create_service(Math)
+    broker.create_service(Math())
     broker.start()
 
 if __name__ == '__main__':
