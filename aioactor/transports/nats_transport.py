@@ -1,4 +1,3 @@
-import time
 import ujson as json
 import asyncio
 from nats.aio.client import Client
@@ -6,41 +5,36 @@ from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 # TODO connect to init!
 # TODO Added Handle for server interuptions
+# TODO replace json dumps to serializer
 
 class NatsTransport:
 
     def __init__(self, subscribe_list, call_service):
-        self.start_time = time.time()
-        self.messages_total = 0
-        self.subscribe_list = subscribe_list
-        self.call_service = call_service
-        self.loop = asyncio.get_event_loop()
-        self.client = Client()
+        self.__subscribe_list = subscribe_list
+        self.__call_service = call_service
+        self.__loop = asyncio.get_event_loop()
+        self.__client = Client()
 
-    async def message_handler(self, msg):
-        self.messages_total += 1
-        if time.time() - self.start_time > 1:
-            print(self.messages_total)
-            self.start_time = time.time()
-            self.messages_total = 0
+    async def __message_handler(self, msg):
         subject = msg.subject
         reply = msg.reply
         data = msg.data.decode()
-        # print("Received a message on '{subject} {reply}': {data}".format(
-        #     subject=subject, reply=reply, data=data))
+        print("Received a message on '{subject} {reply}': {data}".format(
+            subject=subject, reply=reply, data=data))
         data = json.loads(data)
-        result = await self.call_service(subject, **data)
-        dumped = json.dumps({"result": result})
-        await self.client.publish(reply, dumped.encode())
+        result = await self.__call_service(subject, **data)
+        print(result)
+        # dumped = json.dumps({"result": result})
+        # await self.client.publish(reply, dumped.encode())
 
     async def subscribe(self):
-        await self.client.connect(io_loop=self.loop)
-        for service_key in self.subscribe_list.keys():
-            await self.client.subscribe_async(
+        await self.__client.connect(io_loop=self.__loop)
+        for service_key in self.__subscribe_list.keys():
+            await self.__client.subscribe_async(
                 f"{service_key}",
-                cb=self.message_handler)
+                cb=self.__message_handler)
 
     async def publish(self, topic, inbox, data):
-        await self.client.connect(io_loop=self.loop)
-        response = await self.client.publish_request("users.get", inbox, data)
+        await self.__client.connect(io_loop=self.__loop)
+        response = await self.__client.publish_request(topic, inbox, data)
         return response
