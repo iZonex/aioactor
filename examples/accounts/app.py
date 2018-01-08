@@ -10,7 +10,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 # MessageHandler must be able to call methods of Service and control requests
 
 
-class Users(Service):
+class UsersService(Service):
 
     def __init__(self):
         self.name = "users"
@@ -28,6 +28,13 @@ class Users(Service):
         user_obj = users.get(user_id, {})
         return user_obj
 
+# TODO Add protected types for registration
+# TODO Add protocols accepted types for services
+
+
+def register_services(broker, services):
+    for service in services:
+        broker.create_service(service())
 
 async def main():
     settings = {
@@ -37,7 +44,8 @@ async def main():
         }
     }
     broker = ServiceBroker(io_loop=loop, **settings)
-    broker.create_service(Users())
+    services = [UsersService]
+    register_services(broker, services)
     print(broker.available_services())
     await broker.start()
 
