@@ -8,6 +8,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 # TODO ADD possible actions list!
 # TODO ADD abstractions to Message Handler!
 # MessageHandler must be able to call methods of Service and control requests
+# TODO Aggregate date about user [userinfo, location, photo]
 
 
 class UsersService(Service):
@@ -35,6 +36,7 @@ class UsersService(Service):
 def register_services(broker, services):
     for service in services:
         broker.create_service(service())
+
 
 async def main():
     settings = {
