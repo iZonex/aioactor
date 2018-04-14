@@ -14,8 +14,7 @@
 [![Updates](https://pyup.io/repos/github/iZonex/aioactor/shield.svg)](https://pyup.io/repos/github/iZonex/aioactor/)
 [![Python 3](https://pyup.io/repos/github/iZonex/aioactor/python-3-shield.svg)](https://pyup.io/repos/github/iZonex/aioactor/)
 [![Build Status](https://travis-ci.org/iZonex/aioactor.svg?branch=master)](https://travis-ci.org/iZonex/aioactor)
-[![License](http://img.shields.io/:license-apache-blue.svg?style=flat-square)]
-(http://www.apache.org/licenses/LICENSE-2.0.html)
+[![License](http://img.shields.io/:license-apache-blue.svg?style=flat-square)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 ## Usage
 
