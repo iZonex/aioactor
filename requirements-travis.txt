@@ -1,4 +1,4 @@
-pytest==3.0.2
+pytest==3.5.0
 Sphinx==1.4.6
 PyYAML==3.12
 ipython
