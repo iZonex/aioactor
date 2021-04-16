@@ -4,7 +4,7 @@ cchardet==2.1.1
 chardet==3.0.4
 coverage==4.5.1
 cython==0.28.2
-flake8==3.5.0
+flake8==3.9.1
 gunicorn==19.7.1
 isort==4.3.4
 multidict==4.1.0
