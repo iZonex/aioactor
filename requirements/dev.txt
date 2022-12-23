@@ -17,3 +17,4 @@ towncrier==17.8.0
 tox==3.0.0
 twine==1.11.0
 yarl==1.1.1
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
