@@ -12,7 +12,7 @@ pip==10.0.0
 pyflakes==1.6.0
 pytest-cov==2.5.1
 pytest-mock==1.9.0
-pytest==3.5.0
+pytest==7.3.2
 towncrier==17.8.0
 tox==3.0.0
 twine==1.11.0
